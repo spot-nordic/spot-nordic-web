@@ -33,9 +33,10 @@ export default function DocDetailPage() {
     document.documentElement.style.scrollBehavior = 'smooth';
     
     if (doc?.htmlContent) {
+      // Allowed target and rel so external links and downloads work
+      // Removed FORBID_ATTR: ['style'] to allow general styles, but we strip them from buttons below
       const cleanHtml = DOMPurify.sanitize(doc.htmlContent, { 
-        ADD_ATTR: ['id'],
-        FORBID_ATTR: ['style'] 
+        ADD_ATTR: ['id', 'target', 'rel'] 
       });
       
       const parser = new DOMParser();
@@ -64,6 +65,32 @@ export default function DocDetailPage() {
         figure.className = 'my-10 flex flex-col items-center justify-center';
         img.parentNode?.insertBefore(figure, img);
         figure.appendChild(img);
+      });
+
+      // Enhance Links: Automatically turn download/PDF links into beautiful buttons
+      const links = Array.from(docElement.querySelectorAll('a'));
+      links.forEach(a => {
+        const href = a.getAttribute('href') || '';
+        const text = a.textContent?.toLowerCase() || '';
+        
+        // Check if it's a file download or explicitly says 'download'
+        if (href.endsWith('.pdf') || text.includes('download')) {
+          a.removeAttribute('style'); // Strip inline styles to ensure theme consistency
+          
+          // 'not-prose' escapes the tailwind typography plugin's text-link styling
+          a.className = 'not-prose inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold hover:bg-primary/90 transition-all shadow-sm my-4 text-sm';
+          
+          // Inject an SVG download icon next to the text
+          const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
+          a.innerHTML = `${svgIcon} <span>${a.textContent}</span>`;
+          
+          a.setAttribute('target', '_blank');
+          a.setAttribute('rel', 'noopener noreferrer');
+        } else if (href.startsWith('http')) {
+          // Normal external links
+          a.setAttribute('target', '_blank');
+          a.setAttribute('rel', 'noopener noreferrer');
+        }
       });
 
       setToc(items);
@@ -110,7 +137,7 @@ export default function DocDetailPage() {
             prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:text-[1.05rem] prose-p:mb-6
             prose-strong:text-foreground prose-strong:font-semibold
             
-            /* Modern Links */
+            /* Modern Links (Ignored by elements with not-prose) */
             prose-a:text-primary prose-a:font-medium prose-a:underline prose-a:underline-offset-4 prose-a:decoration-primary/30 hover:prose-a:decoration-primary transition-colors
             
             /* Beautiful Lists */
@@ -124,7 +151,6 @@ export default function DocDetailPage() {
       </main>
 
       {/* RIGHT SIDEBAR: Section Digest / Table of Contents */}
-      {/* Changed from xl:block to lg:block to ensure visibility on laptops */}
       <aside className="hidden lg:block w-64 shrink-0 py-12">
         <div className="sticky top-24 bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-5 shadow-sm">
           <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2 mb-4">
