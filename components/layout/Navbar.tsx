@@ -25,11 +25,9 @@ export const Navbar = () => {
   const [hasValidToken, setHasValidToken] = useState(false);
 
   const isDocsPage = pathname?.startsWith('/docs');
-  const isHomePage = pathname === '/';
 
   useEffect(() => {
     setIsClient(true);
-    // Double-check the physical token exists before letting React Query fetch anything
     setHasValidToken(!!localStorage.getItem('token'));
     
     const handleClickOutside = (event: MouseEvent) => {
@@ -44,7 +42,6 @@ export const Navbar = () => {
   const { data: cartData } = useQuery({
     queryKey: ['cart'],
     queryFn: () => sharedApi.getCart(),
-    // STRICT GATING: Prevents the 401 spam
     enabled: isClient && isAuthenticated && hasValidToken,
     retry: false
   });
@@ -68,7 +65,7 @@ export const Navbar = () => {
   ];
 
   return (
-    <div className={`${isHomePage ? 'dark' : ''} sticky top-0 z-50 w-full`}>
+    <div className="sticky top-0 z-50 w-full">
       <nav className="w-full bg-background text-foreground border-b border-border shadow-sm transition-colors duration-300">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-primary tracking-tighter">

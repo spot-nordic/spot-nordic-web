@@ -125,20 +125,20 @@ export default function HomePage() {
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     const material = new THREE.PointsMaterial({
-      size: 4,
+      size: 5,
       vertexColors: true,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.9,
       sizeAttenuation: true
     });
 
     const particles = new THREE.Points(geometry, material);
     scene.add(particles);
 
-    const MAX_LABELS = 5;
+    const MAX_LABELS = 6;
     const labelPool = Array.from({ length: MAX_LABELS }).map(() => {
       const el = document.createElement('div');
-      el.className = 'absolute px-3 py-1.5 bg-[#121212]/90 backdrop-blur-md border border-white/10 text-white text-[10px] font-mono font-bold rounded-lg shadow-xl pointer-events-none transition-opacity duration-300 opacity-0 transform -translate-x-1/2 -translate-y-full flex items-center gap-2';
+      el.className = 'absolute px-3 py-1.5 bg-background/90 backdrop-blur-md border border-border text-foreground text-[10px] font-mono font-bold rounded-lg shadow-xl pointer-events-none transition-opacity duration-1000 opacity-0 transform -translate-x-1/2 -translate-y-full flex items-center gap-2';
       el.style.display = 'none';
       
       const dot = document.createElement('div');
@@ -168,15 +168,18 @@ export default function HomePage() {
       particles.rotation.x += 0.01 * delta;
       particles.updateMatrixWorld();
 
-      if (elapsed - lastSpawn > 0.8) {
+      if (elapsed - lastSpawn > 1.2) {
         const freeLabel = labelPool.find(p => !p.active);
         if (freeLabel) {
           const randIdx = Math.floor(Math.random() * particleCount);
           freeLabel.active = true;
           freeLabel.index = randIdx;
-          freeLabel.expiry = elapsed + 3.5;
-          freeLabel.textNode.nodeValue = hexCodes[randIdx];
-          freeLabel.dot.style.backgroundColor = hexCodes[randIdx];
+          freeLabel.expiry = elapsed + 4.5;
+          
+          const activeHex = hexCodes[randIdx];
+          freeLabel.textNode.nodeValue = activeHex;
+          freeLabel.dot.style.backgroundColor = activeHex;
+          freeLabel.el.style.boxShadow = `0 0 15px ${activeHex}60`;
           freeLabel.el.style.display = 'flex';
           
           void freeLabel.el.offsetWidth;
@@ -191,7 +194,7 @@ export default function HomePage() {
 
         if (elapsed > p.expiry) {
           p.el.style.opacity = '0';
-          if (elapsed > p.expiry + 0.3) {
+          if (elapsed > p.expiry + 1.0) {
             p.active = false;
             p.el.style.display = 'none';
           }
@@ -208,9 +211,8 @@ export default function HomePage() {
         vector.project(camera);
 
         if (vector.z > 1 || vector.z < -1) {
-          p.el.style.display = 'none';
+          p.el.style.opacity = '0';
         } else {
-          p.el.style.display = 'flex';
           const x = (vector.x * 0.5 + 0.5) * width;
           const y = (vector.y * -0.5 + 0.5) * height;
           p.el.style.left = `${x}px`;
@@ -248,14 +250,14 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background selection:bg-primary/20">
       
-      <section className="relative h-[95vh] flex items-center justify-center overflow-hidden border-b border-border bg-[#0a0a0a]">
+      <section className="relative h-[95vh] flex items-center justify-center overflow-hidden border-b border-border bg-background transition-colors duration-300">
         <div ref={mountRef} className="absolute inset-0 z-0"></div>
         <div ref={labelsRef} className="absolute inset-0 z-10 pointer-events-none overflow-hidden"></div>
         
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0a0a]/60 to-[#0a0a0a] z-10 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/60 to-background z-10 pointer-events-none"></div>
         
         <div className="container mx-auto px-6 relative z-20 text-center flex flex-col items-center mt-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1a1a1a] border border-[#333] text-white/80 text-xs font-semibold mb-8 backdrop-blur-md shadow-xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary border border-border text-secondary-foreground text-xs font-semibold mb-8 backdrop-blur-md shadow-xl">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D85456] opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#D85456]"></span>
@@ -263,12 +265,12 @@ export default function HomePage() {
             Spot Matching System®
           </div>
           
-          <h1 className="text-5xl md:text-[5.5rem] font-extrabold tracking-tighter mb-6 text-white max-w-5xl leading-[1.05] drop-shadow-2xl">
+          <h1 className="text-5xl md:text-[5.5rem] font-extrabold tracking-tighter mb-6 text-foreground max-w-5xl leading-[1.05] drop-shadow-2xl">
             Absolute Predictability In <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D85456] via-[#D69E2E] to-[#2C5282]">Color Reproduction</span>
           </h1>
           
-          <p className="text-lg md:text-xl text-gray-400 max-w-3xl mb-10 font-medium drop-shadow-md">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mb-10 font-medium drop-shadow-md">
             The global standard for brand color management, print buying, and graphic design. ISO 12647 and G7 compliant frameworks built for the modern creator.
           </p>
           
@@ -276,7 +278,7 @@ export default function HomePage() {
             <Link href="/shop" className="bg-[#D85456] text-white px-8 py-3.5 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-[#D85456]/90 transition-all shadow-xl hover:-translate-y-0.5 border border-[#D85456]">
               Shop SMS Products <ArrowRight size={18} />
             </Link>
-            <Link href="/docs" className="bg-[#1a1a1a] text-white backdrop-blur-md border border-[#333] px-8 py-3.5 rounded-lg font-semibold hover:bg-[#252525] transition-all flex items-center justify-center">
+            <Link href="/docs" className="bg-secondary text-secondary-foreground backdrop-blur-md border border-border px-8 py-3.5 rounded-lg font-semibold hover:bg-secondary/80 transition-all flex items-center justify-center">
               Read Technical Documentation
             </Link>
           </div>
