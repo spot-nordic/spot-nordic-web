@@ -1,12 +1,10 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sharedApi } from '@/api/shared';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Plus } from 'lucide-react';
+import { AuthGuard } from '@/components/layout/AuthGuard';
 
 interface Ticket {
   id: string;
@@ -15,21 +13,15 @@ interface Ticket {
   status: string;
 }
 
-export default function SupportPage() {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const router = useRouter();
+function SupportContent() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState<boolean>(false);
   const [formData, setFormData] = useState<{ subject: string; description: string }>({ subject: '', description: '' });
 
-  useEffect(() => {
-    if (!isAuthenticated) router.push('/login');
-  }, [isAuthenticated, router]);
-
   const { data, isLoading } = useQuery({
     queryKey: ['tickets'],
     queryFn: () => sharedApi.getTickets(),
-    enabled: isAuthenticated
+    retry: false
   });
 
   const createTicketMutation = useMutation({
@@ -42,19 +34,19 @@ export default function SupportPage() {
     }
   });
 
-  if (!isAuthenticated || isLoading) return <div className="min-h-screen flex items-center justify-center">Loading support...</div>;
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading support...</div>;
 
   return (
     <div className="container mx-auto px-6 py-16 min-h-screen max-w-5xl">
-      <Link href="/account" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-8 transition-colors">
-        <ArrowLeft size={16} className="mr-2" /> Back to Account
+      <Link href="/profile" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-8 transition-colors">
+        <ArrowLeft size={16} className="mr-2" /> Back to Profile
       </Link>
       
       <div className="flex justify-between items-center mb-10">
         <h1 className="text-4xl font-bold tracking-tight text-foreground">Support Tickets</h1>
         <button 
           onClick={() => setShowForm(!showForm)}
-          className="bg-primary text-white px-5 py-2.5 rounded-md font-medium flex items-center gap-2 hover:bg-primary/90 transition-colors"
+          className="bg-primary text-primary-foreground px-5 py-2.5 rounded-md font-medium flex items-center gap-2 hover:bg-primary/90 transition-colors"
         >
           {showForm ? 'Cancel' : <><Plus size={18} /> New Ticket</>}
         </button>
@@ -73,7 +65,7 @@ export default function SupportPage() {
             <label className="block text-sm font-medium mb-1">Description</label>
             <textarea required rows={4} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-3 bg-background border border-border rounded focus:ring-2 focus:ring-primary/50 outline-none resize-none"></textarea>
           </div>
-          <button type="submit" disabled={createTicketMutation.isPending} className="bg-primary text-white px-6 py-2.5 rounded-md font-medium hover:bg-primary/90 transition-colors disabled:opacity-70">
+          <button type="submit" disabled={createTicketMutation.isPending} className="bg-primary text-primary-foreground px-6 py-2.5 rounded-md font-medium hover:bg-primary/90 transition-colors disabled:opacity-70">
             {createTicketMutation.isPending ? 'Submitting...' : 'Submit Ticket'}
           </button>
         </form>
@@ -104,5 +96,13 @@ export default function SupportPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SupportPage() {
+  return (
+    <AuthGuard>
+      <SupportContent />
+    </AuthGuard>
   );
 }

@@ -5,15 +5,19 @@ import { TicketChat } from '@/components/ui/TicketChat';
 import { sharedApi } from '@/api/shared';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { AuthGuard } from '@/components/layout/AuthGuard';
 
-export default function TicketDetailPage() {
+function TicketDetailContent() {
   const params = useParams();
   const ticketId = params.ticketId as string;
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['ticket', ticketId],
-    queryFn: () => sharedApi.getTicketDetails(ticketId)
+    queryFn: () => sharedApi.getTicketDetails(ticketId),
+    retry: false
   });
+
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading ticket details...</div>;
 
   return (
     <div className="container mx-auto px-6 py-16 min-h-screen max-w-4xl">
@@ -41,5 +45,13 @@ export default function TicketDetailPage() {
 
       <TicketChat ticketId={ticketId} isAdmin={false} />
     </div>
+  );
+}
+
+export default function TicketDetailPage() {
+  return (
+    <AuthGuard>
+      <TicketDetailContent />
+    </AuthGuard>
   );
 }

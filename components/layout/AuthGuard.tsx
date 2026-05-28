@@ -1,28 +1,38 @@
 'use client';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { logout } from '@/store/slices/authSlice';
 
 export const AuthGuard = ({ children, requiredRole }: { children: React.ReactNode, requiredRole?: 'ADMIN' | 'USER' }) => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
-  const [isHydrated, setIsHydrated] = useState(false);
+  const dispatch = useDispatch();
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    setIsHydrated(true);
-  }, []);
+    const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    if (isHydrated) {
-      if (!isAuthenticated || (requiredRole && user?.role !== requiredRole)) {
-        router.push('/login');
-      }
+    // BREAK THE LOOP: If Redux thinks we are logged in, but the token was wiped by the interceptor, 
+    // we must immediately clear the Redux state to stop the infinite reload loop.
+    if (isAuthenticated && !token) {
+      dispatch(logout());
+      router.replace('/login');
+      return;
     }
-  }, [isAuthenticated, user, requiredRole, router, isHydrated]);
 
-  if (!isHydrated || !isAuthenticated || (requiredRole && user?.role !== requiredRole)) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    if (!isAuthenticated || !token) {
+      router.replace('/login');
+    } else if (requiredRole && user?.role !== requiredRole) {
+      router.replace('/');
+    } else {
+      setIsAuthorized(true);
+    }
+  }, [isAuthenticated, user, requiredRole, router, dispatch]);
+
+  if (!isAuthorized) {
+    return <div className="min-h-screen flex items-center justify-center animate-pulse">Authenticating...</div>;
   }
 
   return <>{children}</>;

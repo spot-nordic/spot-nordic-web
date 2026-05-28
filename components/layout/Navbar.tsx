@@ -20,22 +20,18 @@ export const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
   const [isClient, setIsClient] = useState(false);
+  const [hasValidToken, setHasValidToken] = useState(false);
 
   const isDocsPage = pathname?.startsWith('/docs');
   const isHomePage = pathname === '/';
 
-  const { data: cartData } = useQuery({
-    queryKey: ['cart'],
-    queryFn: () => sharedApi.getCart(),
-    enabled: isAuthenticated,
-    retry: false
-  });
-
-  const cartCount = cartData?.items?.length || 0;
-
   useEffect(() => {
     setIsClient(true);
+    // Double-check the physical token exists before letting React Query fetch anything
+    setHasValidToken(!!localStorage.getItem('token'));
+    
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false);
@@ -43,7 +39,17 @@ export const Navbar = () => {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isAuthenticated]);
+
+  const { data: cartData } = useQuery({
+    queryKey: ['cart'],
+    queryFn: () => sharedApi.getCart(),
+    // STRICT GATING: Prevents the 401 spam
+    enabled: isClient && isAuthenticated && hasValidToken,
+    retry: false
+  });
+
+  const cartCount = cartData?.items?.length || 0;
 
   const handleLogout = () => {
     dispatch(logout());
@@ -87,7 +93,7 @@ export const Navbar = () => {
               </button>
             )}
 
-            {isClient && isAuthenticated && (
+            {isClient && isAuthenticated && hasValidToken && (
               <Link href="/cart" className="relative p-2 text-muted-foreground hover:text-primary transition-colors">
                 <ShoppingCart size={20} />
                 {cartCount > 0 && (
@@ -99,7 +105,7 @@ export const Navbar = () => {
             )}
 
             {isClient && (
-              isAuthenticated && user && user.firstName ? (
+              isAuthenticated && user && user.firstName && hasValidToken ? (
                 <div className="relative" ref={dropdownRef}>
                   <button 
                     onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -181,7 +187,7 @@ export const Navbar = () => {
                 {link.name}
               </Link>
             ))}
-            {!isAuthenticated && (
+            {(!isAuthenticated || !hasValidToken) && (
               <div className="flex flex-col gap-3 pt-2">
                 <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="text-primary font-bold">Log in</Link>
                 <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-center">Sign up</Link>
