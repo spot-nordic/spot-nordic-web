@@ -70,8 +70,8 @@ export const Navbar = () => {
       <nav className="w-full bg-background text-foreground border-b border-border shadow-sm transition-colors duration-300">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
          <Link href="/" className="flex items-center gap-2 text-xl font-bold text-primary tracking-tighter">
-            <Image src="/logo.svg" alt="Spot Nordic Logo" width={32} height={32} className="w-8 h-8" priority />
-            <span>SPOT<span className="text-foreground">NORDIC</span></span>
+            <Image src="/logo.svg" alt="Spot Nordic Logo" width={32} height={32} className="w-6 h-6" priority />
+           <span><span className="text-[#FF4D4E]">SPOT</span><span className="text-foreground">NORDIC</span></span>
           </Link>
 
           {!isDocsPage && (

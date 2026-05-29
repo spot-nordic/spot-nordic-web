@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/api/admin';
 import { Trash2, CheckCircle, Plus, X, Edit, Eye, Code } from 'lucide-react';
+import Editor from '@monaco-editor/react';
+import { useTheme } from 'next-themes';
 
 interface Term {
   id: string;
@@ -27,6 +29,7 @@ interface PaginatedTermsResponse {
 
 export default function AdminTerms() {
   const queryClient = useQueryClient();
+  const { resolvedTheme } = useTheme();
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingTerm, setEditingTerm] = useState<Term | null>(null);
@@ -192,8 +195,8 @@ export default function AdminTerms() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-card w-full max-w-4xl rounded-xl shadow-xl flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-border bg-muted/20">
+          <div className="bg-card w-full max-w-6xl rounded-xl shadow-xl flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-border bg-muted/20 shrink-0">
               <h2 className="text-xl font-bold">{editingTerm ? 'Edit Terms of Service' : 'Create Terms of Service'}</h2>
               <button onClick={closeModal} className="text-muted-foreground hover:text-foreground transition-colors">
                 <X size={20} />
@@ -229,7 +232,7 @@ export default function AdminTerms() {
                 </div>
 
                 <div className="flex flex-col border border-border rounded-xl overflow-hidden bg-background">
-                  <div className="bg-muted/40 px-4 py-2 border-b border-border flex items-center justify-between">
+                  <div className="bg-muted/40 px-4 py-2 border-b border-border flex items-center justify-between shrink-0">
                     <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                       <Code size={13} /> HTML Content Editor
                     </span>
@@ -256,16 +259,32 @@ export default function AdminTerms() {
                   </div>
 
                   {editorMode === 'WRITE' ? (
-                    <textarea
-                      required
-                      rows={16}
-                      className="w-full p-4 bg-background focus:outline-none font-mono text-sm resize-y min-h-[300px]"
-                      value={formData.htmlContent}
-                      onChange={(e) => setFormData({...formData, htmlContent: e.target.value})}
-                      placeholder="<h2>User Agreement</h2><p>Provide terms details...</p>"
-                    />
+                    <div className="w-full h-[500px] relative pt-2">
+                      <Editor
+                        height="100%"
+                        defaultLanguage="html"
+                        theme={resolvedTheme === 'dark' ? 'vs-dark' : 'light'}
+                        value={formData.htmlContent}
+                        onChange={(value) => setFormData({...formData, htmlContent: value || ''})}
+                        loading={
+                          <div className="flex h-full items-center justify-center text-sm text-muted-foreground animate-pulse">
+                            Loading Editor Engine...
+                          </div>
+                        }
+                        options={{
+                          minimap: { enabled: false },
+                          wordWrap: 'on',
+                          formatOnPaste: true,
+                          formatOnType: true,
+                          autoIndent: "full",
+                          fontSize: 14,
+                          scrollBeyondLastLine: false,
+                          padding: { top: 8, bottom: 8 }
+                        }}
+                      />
+                    </div>
                   ) : (
-                    <div className="p-6 bg-card min-h-[300px] max-h-[500px] overflow-y-auto">
+                    <div className="p-6 bg-card h-[500px] overflow-y-auto">
                       {formData.htmlContent ? (
                         <article 
                           className="prose prose-slate dark:prose-invert max-w-none 
@@ -284,7 +303,7 @@ export default function AdminTerms() {
               </form>
             </div>
             
-            <div className="p-6 border-t border-border flex justify-end gap-3 bg-muted/20">
+            <div className="p-6 border-t border-border flex justify-end gap-3 bg-muted/20 shrink-0">
               <button 
                 type="button" 
                 onClick={closeModal} 
