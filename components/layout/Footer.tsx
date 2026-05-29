@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export const Footer = () => {
   return (
@@ -7,8 +8,9 @@ export const Footer = () => {
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <Link href="/" className="font-bold text-xl tracking-tighter text-primary">
-              SPOT<span className="text-foreground">NORDIC</span>
+            <Link href="/" className="flex items-center gap-2 text-xl font-bold text-primary tracking-tighter">
+              <Image src="/logo.svg" alt="Spot Nordic Logo" width={32} height={32} className="w-8 h-8" priority />
+              <span>SPOT<span className="text-foreground">NORDIC</span></span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
               Premium Nordic designs and comprehensive documentation for modern creators.

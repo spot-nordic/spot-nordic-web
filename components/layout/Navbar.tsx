@@ -10,6 +10,7 @@ import { User, Package, LifeBuoy, LogOut, ChevronDown, ShoppingCart, Menu, X, Su
 import { useQuery } from '@tanstack/react-query';
 import { sharedApi } from '@/api/shared';
 import { useTheme } from 'next-themes';
+import Image from 'next/image';
 
 export const Navbar = () => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
@@ -68,8 +69,9 @@ export const Navbar = () => {
     <div className="sticky top-0 z-50 w-full">
       <nav className="w-full bg-background text-foreground border-b border-border shadow-sm transition-colors duration-300">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-primary tracking-tighter">
-            SPOT<span className="text-foreground">NORDIC</span>
+         <Link href="/" className="flex items-center gap-2 text-xl font-bold text-primary tracking-tighter">
+            <Image src="/logo.svg" alt="Spot Nordic Logo" width={32} height={32} className="w-8 h-8" priority />
+            <span>SPOT<span className="text-foreground">NORDIC</span></span>
           </Link>
 
           {!isDocsPage && (

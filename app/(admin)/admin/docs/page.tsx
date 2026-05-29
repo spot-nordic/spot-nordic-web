@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/api/admin';
 import { Trash2, Edit3, Plus, Folder, FileText, ChevronDown, ChevronRight, Save, Eye, Code, UploadCloud, Copy, Check, Info, FileDown, Layers } from 'lucide-react';
-
+import Editor from '@monaco-editor/react'; // Added import
+import { useTheme } from 'next-themes';
 interface DocNode {
   id: string;
   title: string;
@@ -31,8 +32,8 @@ interface DocAsset {
 }
 
 export default function AdminDocsWorkspace() {
+  const { theme } = useTheme();
   const queryClient = useQueryClient();
-  
   const [selectedNode, setSelectedNode] = useState<DocNode | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isCreating, setIsCreating] = useState<boolean>(false);
@@ -135,7 +136,7 @@ export default function AdminDocsWorkspace() {
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-');
-    
+
     setFormState(prev => ({
       ...prev,
       title: val,
@@ -208,7 +209,7 @@ export default function AdminDocsWorkspace() {
 
   return (
     <div className="h-[calc(100vh-7rem)] flex border border-border rounded-xl overflow-hidden bg-card shadow-sm">
-      
+
       <aside className="w-80 border-r border-border flex flex-col bg-muted/30">
         <div className="p-4 border-b border-border bg-card flex flex-col gap-2">
           <div className="flex items-center justify-between">
@@ -217,13 +218,13 @@ export default function AdminDocsWorkspace() {
             </h2>
           </div>
           <div className="grid grid-cols-2 gap-2 mt-1">
-            <button 
+            <button
               onClick={() => startCreation('GROUP', null)}
               className="flex items-center justify-center gap-1.5 bg-secondary text-secondary-foreground px-2 py-1.5 text-xs font-semibold rounded-md border border-border hover:bg-secondary/80 transition-all"
             >
               <Plus size={12} /> New Category
             </button>
-            <button 
+            <button
               onClick={() => startCreation('DOCUMENT', null)}
               className="flex items-center justify-center gap-1.5 bg-primary text-primary-foreground px-2 py-1.5 text-xs font-semibold rounded-md shadow-sm hover:bg-primary/95 transition-all"
             >
@@ -233,7 +234,7 @@ export default function AdminDocsWorkspace() {
         </div>
 
         <nav className="flex-1 overflow-y-auto p-3 space-y-4">
-          
+
           <div className="space-y-1">
             {rootGroups.map(group => {
               const isOpen = !!expandedGroups[group.id];
@@ -242,14 +243,13 @@ export default function AdminDocsWorkspace() {
 
               return (
                 <div key={group.id} className="space-y-0.5">
-                  <div 
-                    className={`group/item flex items-center justify-between px-2 py-1.5 rounded-lg text-sm transition-all cursor-pointer ${
-                      isSelected ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground/80'
-                    }`}
+                  <div
+                    className={`group/item flex items-center justify-between px-2 py-1.5 rounded-lg text-sm transition-all cursor-pointer ${isSelected ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground/80'
+                      }`}
                     onClick={() => setSelectedNode(group)}
                   >
                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <button 
+                      <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); toggleGroup(group.id); }}
                         className="p-0.5 text-muted-foreground hover:text-foreground rounded"
@@ -277,9 +277,8 @@ export default function AdminDocsWorkspace() {
                           <div
                             key={child.id}
                             onClick={() => setSelectedNode(child)}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all ${
-                              isChildSelected ? 'bg-primary/10 text-primary font-semibold' : 'hover:bg-muted text-muted-foreground hover:text-foreground'
-                            }`}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all ${isChildSelected ? 'bg-primary/10 text-primary font-semibold' : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                              }`}
                           >
                             <FileText size={14} className={isChildSelected ? "text-primary" : "text-muted-foreground/70"} />
                             <span className="truncate">{child.title}</span>
@@ -308,9 +307,8 @@ export default function AdminDocsWorkspace() {
                   <div
                     key={doc.id}
                     onClick={() => setSelectedNode(doc)}
-                    className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm cursor-pointer transition-all ${
-                      isSelected ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground/80'
-                    }`}
+                    className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm cursor-pointer transition-all ${isSelected ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground/80'
+                      }`}
                   >
                     <FileText size={16} className={isSelected ? "text-primary" : "text-muted-foreground"} />
                     <span className="truncate">{doc.title}</span>
@@ -325,7 +323,7 @@ export default function AdminDocsWorkspace() {
       <main className="flex-1 flex flex-col bg-card overflow-hidden relative">
         {selectedNode || isCreating ? (
           <form onSubmit={handleSaveSubmit} className="flex-1 flex flex-col overflow-hidden relative">
-            
+
             {isFetchingDoc && selectedNode && (
               <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-20 flex items-center justify-center">
                 <span className="text-sm font-medium text-muted-foreground animate-pulse">Loading content details...</span>
@@ -335,9 +333,8 @@ export default function AdminDocsWorkspace() {
             <div className="px-6 py-4 border-b border-border bg-muted/10 flex items-center justify-between shrink-0">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                    formState.isGroup ? 'bg-blue-500/10 text-blue-600' : 'bg-purple-500/10 text-purple-600'
-                  }`}>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${formState.isGroup ? 'bg-blue-500/10 text-blue-600' : 'bg-purple-500/10 text-purple-600'
+                    }`}>
                     {formState.isGroup ? 'Category Node' : 'Article Page'}
                   </span>
                   {createParentId && (
@@ -348,7 +345,7 @@ export default function AdminDocsWorkspace() {
                   {isCreating ? `Creating Entry` : `Reviewing Configuration`}
                 </h3>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 {!isEditing && !isCreating ? (
                   <>
@@ -361,7 +358,7 @@ export default function AdminDocsWorkspace() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => { if(confirm('Delete document? This cascades through groups.')) deleteMutation.mutate(selectedNode!.id); }}
+                      onClick={() => { if (confirm('Delete document? This cascades through groups.')) deleteMutation.mutate(selectedNode!.id); }}
                       className="flex items-center gap-1.5 text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20 px-3 py-1.5 text-sm font-medium rounded-lg transition-all"
                     >
                       <Trash2 size={14} /> Remove Page
@@ -392,12 +389,13 @@ export default function AdminDocsWorkspace() {
             </div>
 
             <div className="flex-1 flex overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                
-                <div className="grid grid-cols-2 gap-4">
+              {/* Layout fixed: Changed space-y-6 to flex flex-col gap-6 to allow child expansion */}
+              <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+
+                <div className="grid grid-cols-2 gap-4 shrink-0">
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">System Title</label>
-                    <input 
+                    <input
                       type="text"
                       required
                       disabled={!isEditing}
@@ -408,25 +406,25 @@ export default function AdminDocsWorkspace() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">URL Route Slug</label>
-                    <input 
+                    <input
                       type="text"
                       required
                       disabled={!isEditing}
                       className="w-full p-2.5 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary/40 outline-none text-sm font-mono transition-all disabled:opacity-60"
                       value={formState.slug}
-                      onChange={(e) => setFormState({...formState, slug: e.target.value})}
+                      onChange={(e) => setFormState({ ...formState, slug: e.target.value })}
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-4 shrink-0">
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Parent Hierarchy</label>
                     <select
                       disabled={!isEditing}
                       className="w-full p-2.5 bg-background border border-border rounded-lg outline-none text-sm disabled:opacity-60"
                       value={formState.parentId}
-                      onChange={(e) => setFormState({...formState, parentId: e.target.value})}
+                      onChange={(e) => setFormState({ ...formState, parentId: e.target.value })}
                     >
                       <option value="">Root Level Content</option>
                       {nodes?.filter(n => n.isGroup).map(g => (
@@ -436,13 +434,13 @@ export default function AdminDocsWorkspace() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Display Sort Order</label>
-                    <input 
+                    <input
                       type="number"
                       required
                       disabled={!isEditing}
                       className="w-full p-2.5 bg-background border border-border rounded-lg outline-none text-sm transition-all disabled:opacity-60"
                       value={formState.sortOrder}
-                      onChange={(e) => setFormState({...formState, sortOrder: parseInt(e.target.value) || 0})}
+                      onChange={(e) => setFormState({ ...formState, sortOrder: parseInt(e.target.value) || 0 })}
                     />
                   </div>
                   <div>
@@ -451,7 +449,7 @@ export default function AdminDocsWorkspace() {
                       disabled={!isEditing}
                       className="w-full p-2.5 bg-background border border-border rounded-lg outline-none text-sm disabled:opacity-60"
                       value={formState.status}
-                      onChange={(e) => setFormState({...formState, status: e.target.value})}
+                      onChange={(e) => setFormState({ ...formState, status: e.target.value })}
                     >
                       <option value="DRAFT">Draft Checklist</option>
                       <option value="PUBLISHED">Live Public</option>
@@ -461,8 +459,9 @@ export default function AdminDocsWorkspace() {
                 </div>
 
                 {!formState.isGroup && (
-                  <div className="flex flex-col border border-border rounded-xl overflow-hidden bg-background">
-                    <div className="bg-muted/40 px-4 py-2 border-b border-border flex items-center justify-between">
+                  /* Editor fixed: Added flex-1 and min-h-[500px] */
+                  <div className="flex flex-col flex-1 min-h-[500px] border border-border rounded-xl overflow-hidden bg-background">
+                    <div className="bg-muted/40 px-4 py-2 border-b border-border flex items-center justify-between shrink-0">
                       <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                         <Code size={13} /> Article Engine Block
                       </span>
@@ -470,18 +469,16 @@ export default function AdminDocsWorkspace() {
                         <button
                           type="button"
                           onClick={() => setEditorMode('WRITE')}
-                          className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-sm transition-all ${
-                            editorMode === 'WRITE' ? 'bg-secondary text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                          }`}
+                          className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-sm transition-all ${editorMode === 'WRITE' ? 'bg-secondary text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                            }`}
                         >
                           Code View
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditorMode('PREVIEW')}
-                          className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-sm transition-all ${
-                            editorMode === 'PREVIEW' ? 'bg-secondary text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                          }`}
+                          className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-sm transition-all ${editorMode === 'PREVIEW' ? 'bg-secondary text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                            }`}
                         >
                           <Eye size={12} /> Render Sandbox
                         </button>
@@ -489,18 +486,30 @@ export default function AdminDocsWorkspace() {
                     </div>
 
                     {editorMode === 'WRITE' ? (
-                      <textarea
-                        rows={14}
-                        disabled={!isEditing}
-                        className="w-full p-4 bg-background focus:outline-none font-mono text-sm resize-none disabled:opacity-75"
-                        value={formState.htmlContent}
-                        onChange={(e) => setFormState({...formState, htmlContent: e.target.value})}
-                        placeholder="<h2>Inject HTML Elements Directly Here</h2><p>Provide structured semantic descriptions...</p>"
-                      />
+                      <div className="flex-1 w-full relative pt-2">
+                        <Editor
+                          height="100%"
+                          defaultLanguage="html"
+                          theme={theme === 'dark' ? 'vs-dark' : 'light'}
+                          value={formState.htmlContent}
+                          onChange={(value) => setFormState({ ...formState, htmlContent: value || '' })}
+                          options={{
+                            readOnly: !isEditing,
+                            minimap: { enabled: false },
+                            wordWrap: 'on',
+                            formatOnPaste: true,
+                            formatOnType: true,
+                            autoIndent: "full",
+                            fontSize: 14,
+                            scrollBeyondLastLine: false,
+                            padding: { top: 8, bottom: 8 }
+                          }}
+                        />
+                      </div>
                     ) : (
-                      <div className="p-6 bg-card min-h-[280px] max-h-[400px] overflow-y-auto">
+                      <div className="p-6 bg-card flex-1 overflow-y-auto">
                         {formState.htmlContent ? (
-                          <article 
+                          <article
                             className="prose prose-slate dark:prose-invert max-w-none 
                               prose-headings:font-bold prose-h2:text-xl prose-h2:border-b prose-h2:pb-1 prose-h3:text-lg
                               prose-p:text-muted-foreground prose-p:text-sm prose-p:leading-relaxed
@@ -516,30 +525,30 @@ export default function AdminDocsWorkspace() {
                   </div>
                 )}
 
-                <div className="border border-border rounded-xl p-4 bg-muted/10 space-y-4">
+                <div className="border border-border rounded-xl p-4 bg-muted/10 space-y-4 shrink-0">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                     <Info size={13} /> Meta Discovery Settings (SEO)
                   </h4>
                   <div className="grid grid-cols-1 gap-3">
                     <div>
                       <label className="block text-[11px] font-semibold text-muted-foreground mb-1">Meta Index Title</label>
-                      <input 
+                      <input
                         type="text"
                         disabled={!isEditing}
                         className="w-full p-2 bg-background border border-border rounded-lg text-sm disabled:opacity-60"
                         value={formState.metaTitle}
-                        onChange={(e) => setFormState({...formState, metaTitle: e.target.value})}
+                        onChange={(e) => setFormState({ ...formState, metaTitle: e.target.value })}
                         placeholder="Fallback defaults to title"
                       />
                     </div>
                     <div>
                       <label className="block text-[11px] font-semibold text-muted-foreground mb-1">Search Engine Snippet Summary</label>
-                      <textarea 
+                      <textarea
                         rows={2}
                         disabled={!isEditing}
                         className="w-full p-2 bg-background border border-border rounded-lg text-sm resize-none disabled:opacity-60"
                         value={formState.metaDescription}
-                        onChange={(e) => setFormState({...formState, metaDescription: e.target.value})}
+                        onChange={(e) => setFormState({ ...formState, metaDescription: e.target.value })}
                         placeholder="Provide summary for search index engines..."
                       />
                     </div>
@@ -548,13 +557,13 @@ export default function AdminDocsWorkspace() {
               </div>
 
               {selectedNode && !formState.isGroup && (
-                <div className="w-72 border-l border-border bg-muted/20 flex flex-col overflow-hidden">
+                <div className="w-72 border-l border-border bg-muted/20 flex flex-col overflow-hidden shrink-0">
                   <div className="p-4 border-b border-border bg-card">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                       <UploadCloud size={14} /> Attached Media
                     </h4>
                     <p className="text-[11px] text-muted-foreground mt-0.5">Manage localized visual buffers linked to this node record.</p>
-                    
+
                     <label className="mt-3 flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-border hover:border-primary/50 rounded-lg cursor-pointer bg-muted/40 hover:bg-muted transition-all">
                       <div className="flex flex-col items-center justify-center pt-3 pb-3 text-center px-2">
                         <UploadCloud size={18} className={isUploading ? "text-primary animate-bounce" : "text-muted-foreground"} />
@@ -562,10 +571,10 @@ export default function AdminDocsWorkspace() {
                           {isUploading ? "Processing Asset Pipeline..." : "Upload Resource Link"}
                         </p>
                       </div>
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        onChange={handleAssetUpload} 
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={handleAssetUpload}
                         disabled={isUploading}
                         accept="image/*,application/pdf"
                       />
@@ -584,7 +593,7 @@ export default function AdminDocsWorkspace() {
                             )}
                             <span className="text-xs font-medium truncate text-foreground/90 flex-1">{asset.fileName}</span>
                           </div>
-                          
+
                           <div className="flex items-center justify-between pt-1 border-t border-muted border-dashed">
                             <span className="text-[10px] text-muted-foreground font-mono">
                               {(asset.fileSize / 1024).toFixed(1)} KB
